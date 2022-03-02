@@ -2,6 +2,10 @@ package tech.power.RNBraintreeDropIn;
 
 import android.app.Activity;
 import android.content.Intent;
+
+import com.braintreepayments.api.models.GooglePaymentCardNonce;
+import com.braintreepayments.api.models.PayPalAccountNonce;
+import com.braintreepayments.api.models.PostalAddress;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -63,7 +67,9 @@ public class RNBraintreeDropInModule extends ReactContextBaseJavaModule {
           .setTotalPriceStatus(WalletConstants.TOTAL_PRICE_STATUS_FINAL)
           .setCurrencyCode(options.getString("currencyCode"))
           .build())
+          .emailRequired(true)
           .billingAddressRequired(true)
+          .billingAddressFormat(1)
           .googleMerchantId(options.getString("googlePayMerchantId"));
 
       dropInRequest.googlePaymentRequest(googlePaymentRequest);
@@ -71,9 +77,9 @@ public class RNBraintreeDropInModule extends ReactContextBaseJavaModule {
         dropInRequest.disableGooglePayment();
     }
 
-    // if(options.hasKey("cardDisabled")) {
-    //   dropInRequest.disableCard();
-    // }
+     if(options.hasKey("cardDisabled")) {
+       dropInRequest.disableCard();
+     }
 
     if (options.hasKey("threeDSecure")) {
       final ReadableMap threeDSecureOptions = options.getMap("threeDSecure");
@@ -137,12 +143,38 @@ public class RNBraintreeDropInModule extends ReactContextBaseJavaModule {
 
   private final void resolvePayment(PaymentMethodNonce paymentMethodNonce, String deviceData) {
     WritableMap jsResult = Arguments.createMap();
+    PostalAddress billingAddress = null;
+    if(paymentMethodNonce instanceof PayPalAccountNonce) {
+      PayPalAccountNonce payPalAccountNonce = (PayPalAccountNonce) paymentMethodNonce;
+      jsResult.putString("firstName", payPalAccountNonce.getFirstName());
+      jsResult.putString("lastName", payPalAccountNonce.getLastName());
+      jsResult.putString("email", payPalAccountNonce.getEmail());
+      billingAddress = payPalAccountNonce.getBillingAddress();
+    } else if(paymentMethodNonce instanceof GooglePaymentCardNonce) {
+      GooglePaymentCardNonce googlePaymentCardNonce = (GooglePaymentCardNonce) paymentMethodNonce;
+      billingAddress = googlePaymentCardNonce.getBillingAddress();
+      jsResult.putString("email", googlePaymentCardNonce.getEmail());
+      if(billingAddress != null) {
+        String name = billingAddress.getRecipientName();
+        if(!name.equals("")) {
+          jsResult.putString("firstName", name.substring(0, name.lastIndexOf(" ")));
+          jsResult.putString("lastName", name.substring(name.lastIndexOf(" ")));
+        }
+      }
+    }
+    if(billingAddress != null) {
+      jsResult.putString("addressLine1", billingAddress.getStreetAddress());
+      jsResult.putString("addressLine2", billingAddress.getExtendedAddress());
+      jsResult.putString("city", billingAddress.getLocality());
+      jsResult.putString("state", billingAddress.getRegion());
+      jsResult.putString("country", billingAddress.getCountryCodeAlpha2());
+      jsResult.putString("zip1", billingAddress.getPostalCode());
+    }
     jsResult.putString("nonce", paymentMethodNonce.getNonce());
     jsResult.putString("type", paymentMethodNonce.getTypeLabel());
     jsResult.putString("description", paymentMethodNonce.getDescription());
     jsResult.putBoolean("isDefault", paymentMethodNonce.isDefault());
     jsResult.putString("deviceData", deviceData);
-
     mPromise.resolve(jsResult);
   }
 
