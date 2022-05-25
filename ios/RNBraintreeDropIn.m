@@ -211,26 +211,35 @@ RCT_EXPORT_METHOD(show:(NSDictionary*)options resolver:(RCTPromiseResolveBlock)r
 }
 
 + (void)resolvePayment:(BTDropInResult* _Nullable)result deviceData:(NSString * _Nonnull)deviceDataCollector resolver:(RCTPromiseResolveBlock _Nonnull)resolve {
-    //NSLog(@"result = %@", result);
 
     NSMutableDictionary* jsResult = [NSMutableDictionary new];
 
-    //NSLog(@"paymentMethod = %@", result.paymentMethod);
-    //NSLog(@"paymentIcon = %@", result.paymentIcon);
     if(result.paymentOptionType == BTUIKPaymentOptionTypePayPal) {
-        BTPayPalAccountNonce *paypalNonce = (BTPayPalAccountNonce *)result.paymentMethod;
-        [jsResult setObject:paypalNonce.firstName forKey:@"firstName"];
-        [jsResult setObject:paypalNonce.lastName forKey:@"lastName"];
-        [jsResult setObject:paypalNonce.email forKey:@"email"];
-        [jsResult setObject:paypalNonce.billingAddress.streetAddress forKey:@"addressLine1"];
-        if(paypalNonce.billingAddress.extendedAddress != nil) {
-            [jsResult setObject:paypalNonce.billingAddress.extendedAddress forKey:@"addressLine2"];
+                BTPayPalAccountNonce *paypalNonce = (BTPayPalAccountNonce *)result.paymentMethod;
+                [jsResult setObject:paypalNonce.firstName forKey:@"firstName"];
+                [jsResult setObject:paypalNonce.lastName forKey:@"lastName"];
+                [jsResult setObject:paypalNonce.email forKey:@"email"];
+                if(paypalNonce.billingAddress != nil) {
+                    if(paypalNonce.billingAddress.streetAddress != nil) {
+                        [jsResult setObject:paypalNonce.billingAddress.streetAddress forKey:@"addressLine1"];
+                    }
+                     if(paypalNonce.billingAddress.extendedAddress != nil) {
+                        [jsResult setObject:paypalNonce.billingAddress.extendedAddress forKey:@"addressLine2"];
+                     }
+                     if(paypalNonce.billingAddress.locality != nil) {
+                        [jsResult setObject:paypalNonce.billingAddress.locality forKey:@"city"];
+                     }
+                     if(paypalNonce.billingAddress.region != nil) {
+                        [jsResult setObject:paypalNonce.billingAddress.region forKey:@"state"];
+                     }
+                     if(paypalNonce.billingAddress.countryCodeAlpha2 != nil) {
+                        [jsResult setObject:paypalNonce.billingAddress.countryCodeAlpha2 forKey:@"country"];
+                     }
+                     if(paypalNonce.billingAddress.postalCode != nil) {
+                        [jsResult setObject:paypalNonce.billingAddress.postalCode forKey:@"zip1"];
+                     }
+                }
         }
-        [jsResult setObject:paypalNonce.billingAddress.locality forKey:@"city"];
-        [jsResult setObject:paypalNonce.billingAddress.region forKey:@"state"];
-        [jsResult setObject:paypalNonce.billingAddress.countryCodeAlpha2 forKey:@"country"];
-        [jsResult setObject:paypalNonce.billingAddress.postalCode forKey:@"zip1"];
-    }
     [jsResult setObject:result.paymentMethod.nonce forKey:@"nonce"];
     [jsResult setObject:result.paymentMethod.type forKey:@"type"];
     [jsResult setObject:result.paymentDescription forKey:@"description"];
