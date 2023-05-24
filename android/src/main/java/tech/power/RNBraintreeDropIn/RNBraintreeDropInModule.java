@@ -157,8 +157,13 @@ public class RNBraintreeDropInModule extends ReactContextBaseJavaModule {
       if(billingAddress != null) {
         String name = billingAddress.getRecipientName();
         if(!name.equals("")) {
-          jsResult.putString("firstName", name.substring(0, name.lastIndexOf(" ")));
-          jsResult.putString("lastName", name.substring(name.lastIndexOf(" ")));
+          short lastIndexOfSpace = (short) name.lastIndexOf(" ");
+          if(lastIndexOfSpace == -1) {
+            jsResult.putString("firstName", name.trim())
+          } else {
+            jsResult.putString("firstName", name.substring(0, lastIndexOfSpace));
+            jsResult.putString("lastName", name.substring(lastIndexOfSpace));
+          }
         }
       }
     }
