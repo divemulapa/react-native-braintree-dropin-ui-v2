@@ -159,7 +159,7 @@ public class RNBraintreeDropInModule extends ReactContextBaseJavaModule {
         if(!name.equals("")) {
           short lastIndexOfSpace = (short) name.lastIndexOf(" ");
           if(lastIndexOfSpace == -1) {
-            jsResult.putString("firstName", name.trim())
+            jsResult.putString("firstName", name.trim());
           } else {
             jsResult.putString("firstName", name.substring(0, lastIndexOfSpace));
             jsResult.putString("lastName", name.substring(lastIndexOfSpace));
