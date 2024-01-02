@@ -24,6 +24,8 @@ import com.braintreepayments.api.models.ThreeDSecureInfo;
 import com.braintreepayments.api.models.GooglePaymentRequest;
 import com.google.android.gms.wallet.TransactionInfo;
 import com.google.android.gms.wallet.WalletConstants;
+import com.braintreepayments.api.BraintreeFragment;
+import com.braintreepayments.api.interfaces.BraintreeResponseListener;
 
 public class RNBraintreeDropInModule extends ReactContextBaseJavaModule {
 
@@ -32,9 +34,38 @@ public class RNBraintreeDropInModule extends ReactContextBaseJavaModule {
 
   private boolean isVerifyingThreeDSecure = false;
 
+  private BraintreeFragment mBraintreeFragment;
+
   public RNBraintreeDropInModule(ReactApplicationContext reactContext) {
     super(reactContext);
     reactContext.addActivityEventListener(mActivityListener);
+  }
+
+  @ReactMethod
+  private void collectDeviceData(final String clientToken, final Promise promise) {
+    if (clientToken == null) {
+      promise.reject("NO_CLIENT_TOKEN", "You must provide a client token");
+      return;
+    }
+    Activity currentActivity = getCurrentActivity();
+    if (currentActivity == null) {
+      promise.reject("NO_ACTIVITY", "There is no current activity");
+      return;
+    }
+    try {
+      mBraintreeFragment = BraintreeFragment.newInstance((AppCompatActivity) currentActivity, clientToken);
+    } catch (InvalidArgumentException e) {
+      promise.reject("INVALID_ARGUMENT", e.getMessage());
+    }
+
+    DataCollector.collectDeviceData(mBraintreeFragment, new BraintreeResponseListener<String>() {
+      @Override
+      public void onResponse(String deviceData) {
+        WritableMap jsResult = Arguments.createMap();
+        jsResult.putString("deviceData", deviceData);
+        promise.resolve(jsResult);
+      }
+    });
   }
 
   @ReactMethod
