@@ -3,6 +3,10 @@ package tech.power.RNBraintreeDropIn;
 import android.app.Activity;
 import android.content.Intent;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.braintreepayments.api.DataCollector;
+import com.braintreepayments.api.exceptions.InvalidArgumentException;
 import com.braintreepayments.api.models.GooglePaymentCardNonce;
 import com.braintreepayments.api.models.PayPalAccountNonce;
 import com.braintreepayments.api.models.PostalAddress;
