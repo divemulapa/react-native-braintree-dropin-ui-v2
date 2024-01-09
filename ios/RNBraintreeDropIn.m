@@ -288,7 +288,7 @@ RCT_EXPORT_METHOD(tokenizeCard:(NSString*)clientToken
 
     NSMutableDictionary* jsResult = [NSMutableDictionary new];
 
-    if(result.paymentOptionType == BTUIKPaymentOptionTypePayPal) {
+    if(result.paymentMethodType == BTDropInPaymentMethodTypePayPal) {
                 BTPayPalAccountNonce *paypalNonce = (BTPayPalAccountNonce *)result.paymentMethod;
                 [jsResult setObject:paypalNonce.firstName forKey:@"firstName"];
                 [jsResult setObject:paypalNonce.lastName forKey:@"lastName"];
